@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error
+from edgefl.data.generator import generate_clients_data
 
 
 class ClientNode:
@@ -50,27 +51,20 @@ class FederatedServer:
 
 # === Example Simulation ===
 
-def generate_synthetic_data(n_clients=5, n_samples=100):
-    clients = []
-    for client_id in range(n_clients):
-        X = np.random.rand(n_samples, 3) * (1 + 0.1 * client_id)
-        noise = np.random.normal(0, 0.1, n_samples)
-        y = 3 * X[:, 0] + 2 * X[:, 1] + X[:, 2] + noise
-        clients.append(ClientNode(client_id, X, y))
-    return clients
-
-
 def run_simulation(rounds=5):
-    clients = generate_synthetic_data()
+    clients_data = generate_clients_data(n_clients=5, n_samples=100)
+    clients = [ClientNode(i, X, y) for i, (X, y) in enumerate(clients_data)]
     server = FederatedServer(clients)
 
     for r in range(rounds):
         print(f"--- Round {r + 1} ---")
         server.distribute_and_train()
 
-    # Generate test set
-    X_test = np.random.rand(100, 3)
-    y_test = 3 * X_test[:, 0] + 2 * X_test[:, 1] + X_test[:, 2] + np.random.normal(0, 0.1, 100)
+    # Generate test set from average region factor (1.2)
+    from edgefl.data.generator import generate_environmental_data
+    df_test = generate_environmental_data(n_samples=100, region_factor=1.2, seed=999)
+    X_test = df_test[['temperature', 'humidity', 'pm25']].values
+    y_test = df_test['aqi'].values
     mse = server.evaluate_global_model(X_test, y_test)
     print(f"Final MSE on test set: {mse:.4f}")
 
