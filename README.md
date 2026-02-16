@@ -1,6 +1,6 @@
 # EdgeFL
 
-[![Documentation](https://img.shields.io/badge/docs-material-blue.svg)](https://edgefl.github.io/)
+[![Documentation](https://img.shields.io/badge/docs-material-blue.svg)](https://tymill.github.io/EdgeFL/)
 [![PyPI version](https://img.shields.io/pypi/v/edgefl.svg)](https://pypi.org/project/edgefl/)
 [![Python versions](https://img.shields.io/pypi/pyversions/edgefl.svg)](https://pypi.org/project/edgefl/)
 [![Downloads](https://img.shields.io/pypi/dm/edgefl.svg)](https://pypistats.org/packages/edgefl)
