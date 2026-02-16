@@ -1,73 +1,121 @@
+"""High-level helpers to run simple federated learning simulations."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from typing import Sequence
+
 import numpy as np
-from sklearn.linear_model import LinearRegression
-from sklearn.metrics import mean_squared_error
-from edgefl.data.generator import generate_clients_data
+
+from edgefl.data import EdgeDataset
+from edgefl.data.generator import generate_clients_data, generate_environmental_data
+from edgefl.models.sklearn import SklearnLinearModel
+from edgefl.agents import Agent, AgentCoordinator
+from edgefl.nodes import ClientNode
+from edgefl.server import AggregationStrategy, FederatedServer
+from edgefl.environment.events import EventScheduler
 
 
-class ClientNode:
-    def __init__(self, client_id, X, y):
-        self.client_id = client_id
-        self.X = X
-        self.y = y
-        self.model = LinearRegression()
+@dataclass
+class SimulationResult:
+    """Container for simulation history and final metrics."""
 
-    def train_local_model(self):
-        self.model.fit(self.X, self.y)
-        return self.get_model_weights()
-
-    def get_model_weights(self):
-        return np.append(self.model.coef_, self.model.intercept_)
-
-    def set_model_weights(self, weights):
-        self.model.coef_ = weights[:-1]
-        self.model.intercept_ = weights[-1]
+    history: list[dict[str, object]]
+    final_metrics: dict[str, float]
 
 
-class FederatedServer:
-    def __init__(self, clients):
-        self.clients = clients
-        self.global_weights = None
-
-    def aggregate_weights(self, all_weights):
-        return np.mean(all_weights, axis=0)
-
-    def distribute_and_train(self):
-        all_weights = []
-        for client in self.clients:
-            if self.global_weights is not None:
-                client.set_model_weights(self.global_weights)
-            weights = client.train_local_model()
-            all_weights.append(weights)
-        self.global_weights = self.aggregate_weights(all_weights)
-
-    def evaluate_global_model(self, X_test, y_test):
-        dummy_model = LinearRegression()
-        dummy_model.coef_ = self.global_weights[:-1]
-        dummy_model.intercept_ = self.global_weights[-1]
-        predictions = dummy_model.predict(X_test)
-        mse = mean_squared_error(y_test, predictions)
-        return mse
+def _build_clients(
+    clients_data: Sequence[tuple[np.ndarray, np.ndarray]],
+) -> list[ClientNode]:
+    clients: list[ClientNode] = []
+    feature_names = ["temperature", "humidity", "pm25"]
+    for client_id, (X, y) in enumerate(clients_data):
+        dataset = EdgeDataset(X, y, feature_names=feature_names, target_name="aqi")
+        clients.append(
+            ClientNode(
+                client_id=client_id,
+                X=dataset.features,
+                y=dataset.target,
+                model=SklearnLinearModel(),
+            )
+        )
+    return clients
 
 
-# === Example Simulation ===
+def run_simulation(
+    rounds: int = 5, aggregation_strategy: AggregationStrategy = "weighted"
+) -> None:
+    """Run an example simulation using generated environmental data."""
 
-def run_simulation(rounds=5):
     clients_data = generate_clients_data(n_clients=5, n_samples=100)
-    clients = [ClientNode(i, X, y) for i, (X, y) in enumerate(clients_data)]
-    server = FederatedServer(clients)
+    clients = _build_clients(clients_data)
 
-    for r in range(rounds):
-        print(f"--- Round {r + 1} ---")
-        server.distribute_and_train()
+    df_val = generate_environmental_data(n_samples=100, region_factor=1.2, seed=999)
+    val_dataset = EdgeDataset.from_dataframe(df_val, target_column="aqi")
+    X_val = val_dataset.features
+    y_val = val_dataset.target
 
-    # Generate test set from average region factor (1.2)
-    from edgefl.data.generator import generate_environmental_data
-    df_test = generate_environmental_data(n_samples=100, region_factor=1.2, seed=999)
-    X_test = df_test[['temperature', 'humidity', 'pm25']].values
-    y_test = df_test['aqi'].values
-    mse = server.evaluate_global_model(X_test, y_test)
-    print(f"Final MSE on test set: {mse:.4f}")
+    server = FederatedServer(
+        model=SklearnLinearModel(),
+        clients=clients,
+        aggregation_strategy=aggregation_strategy,
+        validation_data=(X_val, y_val),
+    )
+
+    for round_index in range(rounds):
+        print(f"--- Round {round_index + 1} ---")
+        result = server.train_round()
+        if result["validation"]:
+            print(f"Validation {result['validation']}")
+
+    predictions = server.model.predict(X_val)
+    mse = float(np.mean(np.square(predictions - y_val)))
+    print(f"Final MSE on validation set: {mse:.4f}")
 
 
-if __name__ == "__main__":
+def run_agent_simulation(
+    rounds: int = 5,
+    aggregation_strategy: AggregationStrategy = "weighted",
+    scheduler: EventScheduler | None = None,
+) -> SimulationResult:
+    """Run an example simulation using the multi-agent layer."""
+
+    clients_data = generate_clients_data(n_clients=5, n_samples=100)
+    clients = _build_clients(clients_data)
+    agents = [Agent(client=client) for client in clients]
+
+    df_val = generate_environmental_data(n_samples=100, region_factor=1.2, seed=999)
+    val_dataset = EdgeDataset.from_dataframe(df_val, target_column="aqi")
+    X_val = val_dataset.features
+    y_val = val_dataset.target
+
+    coordinator = AgentCoordinator(
+        model=SklearnLinearModel(),
+        agents=agents,
+        aggregation_strategy=aggregation_strategy,
+        validation_data=(X_val, y_val),
+        scheduler=scheduler,
+    )
+
+    for round_index in range(rounds):
+        print(f"--- Agent Round {round_index + 1} ---")
+        result = coordinator.train_round(round_index=round_index)
+        if result["validation"]:
+            print(f"Validation {result['validation']}")
+
+    predictions = coordinator.model.predict(X_val)
+    mse = float(np.mean(np.square(predictions - y_val)))
+    print(f"Final MSE on validation set: {mse:.4f}")
+    final_metrics = {"final_mse": mse}
+    if coordinator.history and "metrics" in coordinator.history[-1]:
+        final_metrics.update(
+            {
+                key: float(value)
+                for key, value in coordinator.history[-1]["metrics"].items()
+            }
+        )
+    return SimulationResult(history=coordinator.history, final_metrics=final_metrics)
+
+
+if __name__ == "__main__":  # pragma: no cover
     run_simulation()

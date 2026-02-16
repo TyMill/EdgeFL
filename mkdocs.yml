@@ -1,0 +1,61 @@
+site_name: EdgeFL
+site_description: Federated learning experimentation toolkit for edge environments
+site_url: https://edgefl-demo.github.io/
+repo_url: https://github.com/example/EdgeFL-demo
+repo_name: example/EdgeFL-demo
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - Architecture: architecture.md
+  - Use Cases: use_cases.md
+  - Examples:
+      - Overview: examples/index.md
+      - Urban Sensor Network: examples/urban_sensor_network.md
+      - PyTorch Adaptation: examples/pytorch_adaptation.md
+      - MAS Churn Coordination: examples/mas_churn_coordination.md
+  - Component Guides:
+      - ClientNode: docs/ClientNode.md
+      - FederatedServer: docs/modules/federated_server.md
+      - AgentCoordinator: docs/modules/agent_coordinator.md
+      - Data Generator: docs/modules/data_generator.md
+  - API Reference: api.md
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.instant
+    - navigation.sections
+    - toc.integrate
+    - content.code.annotate
+  palette:
+    scheme: default
+    primary: indigo
+    accent: pink
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_root_full_path: false
+            show_if_no_docstring: false
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.critic
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true

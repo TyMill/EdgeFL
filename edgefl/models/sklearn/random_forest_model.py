@@ -1,30 +1,45 @@
+"""Random forest model adapter for federated learning."""
+
+from __future__ import annotations
+
+from dataclasses import dataclass, field
+from typing import Dict, Optional, Union
+
 import numpy as np
+from numpy.typing import NDArray
 from sklearn.ensemble import RandomForestRegressor
+
 from edgefl.models.base_model import BaseModel
 
+Array = NDArray[np.float64]
 
+
+@dataclass
 class SklearnRandomForestModel(BaseModel):
-    """
-    Random Forest model wrapper using scikit-learn,
-    compatible with EdgeFL's BaseModel interface.
-    """
-    def __init__(self, n_estimators=100, random_state=42):
-        self.model = RandomForestRegressor(n_estimators=n_estimators, random_state=random_state)
+    """Random forest regressor compatible with :class:`BaseModel`."""
 
-    def fit(self, X: np.ndarray, y: np.ndarray):
-        self.model.fit(X, y)
+    n_estimators: int = 100
+    random_state: Optional[int] = 42
+    _model: RandomForestRegressor = field(init=False, repr=False)
 
-    def predict(self, X: np.ndarray) -> np.ndarray:
-        return self.model.predict(X)
+    def __post_init__(self) -> None:
+        self._model = RandomForestRegressor(
+            n_estimators=self.n_estimators, random_state=self.random_state
+        )
 
-    def get_weights(self) -> np.ndarray:
-        # Random Forests are not weight-based, return a dummy
-        return np.array([0.0])
+    def fit(self, X: Array, y: Array) -> None:
+        self._model.fit(X, y)
 
-    def set_weights(self, weights: np.ndarray):
-        # Not applicable, so we raise a warning or ignore
-        pass
+    def predict(self, X: Array) -> Array:
+        return self._model.predict(X)
 
-    def get_params(self) -> dict:
-        return self.model.get_params()
+    def get_weights(self) -> Array:
+        return np.array([0.0], dtype=float)
 
+    def set_weights(
+        self, weights: Array
+    ) -> None:  # pragma: no cover - intentional no-op
+        _ = weights  # No-op: tree-based models do not expose simple weight vectors
+
+    def get_params(self) -> Dict[str, Union[float, int, None]]:
+        return {"n_estimators": self.n_estimators, "random_state": self.random_state}

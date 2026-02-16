@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling>=1.21"]
+build-backend = "hatchling.build"
+
+[project]
+name = "edgefl"
+dynamic = ["version"]
+description = "Federated learning experimentation toolkit for edge environments."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Tymoteusz Miller", email = "me@tymoteuszmiller.dev" }
+]
+keywords = ["federated-learning", "edge-computing", "machine-learning"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "numpy>=1.24",
+    "pandas>=1.5",
+    "scikit-learn>=1.2",
+    "pydantic>=1.10,<2",
+]
+
+[project.optional-dependencies]
+docs = [
+    "mkdocs>=1.5",
+    "mkdocs-material>=9.5",
+    "mkdocstrings[python]>=0.24",
+]
+tests = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+dev = [
+    "black>=24.4",
+    "ruff>=0.4.4",
+    "tox>=4.11",
+]
+
+[project.urls]
+Homepage = "https://github.com/edgefl/EdgeFL"
+Documentation = "https://edgefl.github.io/"
+Changelog = "https://github.com/edgefl/EdgeFL/blob/main/CHANGELOG.md"
+Issues = "https://github.com/edgefl/EdgeFL/issues"
+
+[tool.hatch.version]
+path = "edgefl/__init__.py"
+
+[tool.black]
+line-length = 88
+target-version = ["py39"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+src = ["edgefl", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "B"]
+ignore = ["E203", "E501"]
+
+[tool.ruff.format]
+quote-style = "double"

@@ -1,13 +1,37 @@
 # ClientNode
 
-The `ClientNode` class simulates an edge device in a federated learning environment. Each client:
+`ClientNode` represents one edge participant in a federated round.
 
-- Stores its own local dataset `(X, y)`
-- Trains a local model (Linear Regression)
-- Returns weights to the federated server
-- Can receive global weights and continue training
+## Responsibilities
 
-### Methods
-- `train_local_model()`: Fits the model on local data and returns weights.
-- `get_model_weights()`: Returns a flattened array of model coefficients + intercept.
-- `set_model_weights(weights)`: Updates local model with global weights.
+- owns local dataset (`X`, `y`),
+- stores a local model implementing `BaseModel`,
+- trains locally and returns updated weights,
+- accepts global weights broadcast by server/coordinator.
+
+## Construction
+
+```python
+from edgefl import ClientNode, SklearnLinearModel
+
+client = ClientNode(
+    client_id=0,
+    X=X_local,
+    y=y_local,
+    model=SklearnLinearModel(),
+)
+```
+
+You can also pass `model_factory` when every client needs its own fresh model instance:
+
+```python
+client = ClientNode(client_id=1, X=X_local, y=y_local, model_factory=SklearnLinearModel)
+```
+
+## Main methods
+
+- `train()` → runs local `fit` and returns weights.
+- `get_weights()` → returns current local weights.
+- `set_weights(weights)` → updates local model from global weights.
+- `evaluate(X_val, y_val)` → returns MSE.
+- `update_data(X, y)` → replaces local dataset.

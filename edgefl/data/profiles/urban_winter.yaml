@@ -1,0 +1,30 @@
+name: UrbanWinter
+n_samples: 250
+variables:
+  temperature:
+    mean: 2.0
+    std: 3.5
+    seasonality:
+      amplitude: 6.0
+      period: 365
+      phase: 30
+  humidity:
+    mean: 60.0
+    std: 12.0
+    minimum: 10
+    maximum: 100
+  pm25:
+    mean: 40.0
+    std: 15.0
+    minimum: 0
+correlations:
+  temperature:
+    pm25: -0.25
+target:
+  coefficients:
+    temperature: 0.3
+    humidity: -0.15
+    pm25: 0.65
+  intercept: 5.0
+  noise_std: 6.0
+weight: 2.0
