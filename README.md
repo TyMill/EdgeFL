@@ -141,21 +141,6 @@ This pairing enables controlled studies of strategic participation, robustness, 
 - `docs/` – Project documentation sources.
 - `examples/` – Usage examples and notebooks.
 
-## Documentation
-
-Build the static site locally with [MkDocs](https://www.mkdocs.org/):
-
-```bash
-pip install -e .[docs]
-mkdocs serve  # live preview at http://127.0.0.1:8000/
-mkdocs build  # outputs site/ with static assets
-```
-
-To publish the documentation to GitHub Pages:
-
-1. Enable GitHub Pages in the repository settings, selecting the `gh-pages` branch.
-2. Run `mkdocs gh-deploy --force` locally (after authenticating with GitHub). This command builds the site and pushes the result to the `gh-pages` branch.
-3. Visit `https://<your-account>.github.io/EdgeFL/` to verify the deployment.
 
 ## Contributing
 
