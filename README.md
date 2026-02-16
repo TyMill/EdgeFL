@@ -2,6 +2,7 @@
 
 [![Documentation](https://img.shields.io/badge/docs-material-blue.svg)](https://tymill.github.io/EdgeFL/)
 [![PyPI version](https://img.shields.io/pypi/v/edgefl.svg)](https://pypi.org/project/edgefl/)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18656732.svg)](https://doi.org/10.5281/zenodo.18656732)
 [![Python versions](https://img.shields.io/pypi/pyversions/edgefl.svg)](https://pypi.org/project/edgefl/)
 [![Downloads](https://img.shields.io/pypi/dm/edgefl.svg)](https://pypistats.org/packages/edgefl)
 
