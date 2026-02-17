@@ -5,6 +5,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.18656732.svg)](https://doi.org/10.5281/zenodo.18656732)
 [![Python versions](https://img.shields.io/pypi/pyversions/edgefl.svg)](https://pypi.org/project/edgefl/)
 [![Downloads](https://img.shields.io/pypi/dm/edgefl.svg)](https://pypistats.org/packages/edgefl)
+[![PyPI Downloads](https://static.pepy.tech/personalized-badge/edgefl?period=total&units=INTERNATIONAL_SYSTEM&left_color=BLACK&right_color=GREEN&left_text=downloads)](https://pepy.tech/projects/edgefl)
+![Visitors](https://komarev.com/ghpvc/?username=irmina-d&color=green&style=plastic)
 
 
 EdgeFL is a lightweight experimentation toolkit for federated learning scenarios deployed on edge devices. It provides utilities for generating synthetic datasets, defining lightweight models, and orchestrating end-to-end simulations of collaborative training sessions across heterogeneous clients.
